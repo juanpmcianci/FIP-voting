@@ -48,7 +48,7 @@ def dataPreprocess(height:int,sectreString:str):
     listVotes=votes.votes
     
     print('getting list of core devs...')
-    list_core_devs=list(pd.read_csv('listOfCoreDevs.csv'))
+    list_core_devs=list(pd.read_csv('datasets/listOfCoreDevs.csv'))
 
     results={'deals':listDeals,
              'miners':miner_info,
