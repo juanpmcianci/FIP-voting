@@ -6,7 +6,6 @@ Created on Sun Sep 18 23:27:17 2022
 @author: juan
 """
 
-import pandas as pd
 import json
 import datautils as utils
 
@@ -19,7 +18,7 @@ def countVote(vote,groups_of_voters,datasets,signatures):
     list_of_powers=datasets['powers']
     
     signature=json.loads(vote["signature"])
-    X = signature["address"]
+    X = signature["signer"]
     signature=utils.addShortAndLongId(signature=signature,
                 list_of_addresses_and_ids=list_of_addresses_and_ids)
     #
@@ -54,7 +53,7 @@ def countVote(vote,groups_of_voters,datasets,signatures):
     
     
     #print('length {}'.format(len(dealsForX)))
-    totalBytes = dealsForX["padded_piece_size"].sum()
+    totalBytes = dealsForX["unpadded_piece_size"].sum()
     
     
     
@@ -94,7 +93,7 @@ def countVote(vote,groups_of_voters,datasets,signatures):
         
         
     
-        totalBytesY += dealsByY["padded_piece_size"].sum()
+        totalBytesY += dealsByY["unpadded_piece_size"].sum()
     #
     # from Add Y's raw bytes to the SP capacity vote (Group 2)
     #

@@ -186,16 +186,16 @@ class groups:
         print('-----------')
         
         if  self.groupID==1 or self.groupID==2 or self.groupID==3:
-            divisor=1e15
+            divisor=2**60
         elif self.groupID==4:
-            divisor=1e18
+            divisor=int(1e18)
         else:
             divisor=1
 
         self.tally = list_of_votes.groupby("vote")["quantity"].sum().to_dict()
-        total_votes = sum(self.tally.values())/divisor
+        total_votes = sum(self.tally.values())//divisor
         for op, voted_for_op in self.tally.items():
-            voted_for_op=voted_for_op/divisor
+            voted_for_op=voted_for_op//divisor
             
 
             

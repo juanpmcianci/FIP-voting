@@ -357,14 +357,14 @@ def get_active_power_actors(database: sentinel, height: int):
 
     """
     try:
-        active_powers = pd.read_csv("database/power_actors.csv")
+        active_powers = pd.read_csv("datasets/power_actors.csv")
     except:
         power_actors = get_all_power_actors(database=database, height=height)
         positive_powers = power_actors[power_actors["quality_adj_power"] > 0]
         active_powers = positive_powers.sort_values(
             "height", ascending=False
         ).drop_duplicates("miner_id")
-        active_powers.to_csv("power_actors.csv")
+        active_powers.to_csv("datasets/power_actors.csv")
     return active_powers
 
 
@@ -416,14 +416,12 @@ def get_market_deals(database: sentinel,  height: int):
         
         print('getting list of market deal proposals...')
 
-        query='''SELECT DISTINCT "piece_cid",  "padded_piece_size",
+        query='''SELECT DISTINCT "piece_cid",  "unpadded_piece_size",
         "client_id", "provider_id","height" 
         FROM "visor"."market_deal_proposals"
-        WHERE "height"<={} AND end_epoch>={}'''.format(height,height)
+        WHERE "height"<={} AND "end_epoch">={} AND "start_epoch"<={}'''.format(height,height,height)
         
         deals= database.customQuery(query)
-        deals=deals.sort_values(by='height',ascending=False) 
-        deals=deals.groupby(by='piece_cid').head(1)
         deals.to_csv('datasets/market_deals.csv')
         
     return deals
@@ -446,6 +444,46 @@ def toObs(group,name:str):
     
     return Approve,Reject
 
+
+
+
+def get_balances(database: sentinel,  height: int):
+    '''
+    
+    return a list of balances up-untila centain height
+    
+
+    Parameters
+    ----------
+    database : sentinel
+        DESCRIPTION.
+    height : int
+        DESCRIPTION.
+
+    Returns
+    -------
+    balances : TYPE
+        DESCRIPTION.
+
+    '''
+    
+    
+    try:
+        balances=pd.read_csv('datasets/balances.csv')
+    except:
+                
+        
+        print('getting list of balances proposals...')
+
+        query='''SELECT DISTINCT "id", "balance", "height"  
+        FROM "visor"."actors"
+        WHERE "height"<={}'''.format(height)
+        
+        balances= database.customQuery(query)
+        balances.to_csv('datasets/balances.csv')
+        
+    return balances
+    
 
 
 
