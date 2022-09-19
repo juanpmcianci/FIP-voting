@@ -95,7 +95,7 @@ for ii in tqdm(range(N_votes)):
 
     #computes total bytes where X is the del proposer (client)
     totalBytes = dealsForX["padded_piece_size"].sum()
-    
+        
     
     
     # checks that address X has not voted and has >0 bytes as a client

@@ -246,6 +246,9 @@ def get_owned_SPs(database: sentinel,  height: int):
         ORDER BY "height" DESC
        """.format(height)
         miner_infos = database.customQuery(QUERY)
+        miner_infos=miner_infos.sort_values(by='height')
+        miner_infos=miner_infos.groupby(by='miner_id').head(1)
+
         miner_infos.to_csv('datasets/miner_infos.csv')
     return miner_infos
 
@@ -419,10 +422,8 @@ def get_market_deals(database: sentinel,  height: int):
         WHERE "height"<={} AND end_epoch>={}'''.format(height,height)
         
         deals= database.customQuery(query)
-        
-        
-        print('done with deals!')
-        
+        deals=deals.sort_values(by='height',ascending=False) 
+        deals=deals.groupby(by='piece_cid').head(1)
         deals.to_csv('datasets/market_deals.csv')
         
     return deals
