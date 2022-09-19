@@ -59,9 +59,14 @@ def getShortId(signature:dict,list_of_addresses_and_ids:list):
     
     
     X=signature['signer']
-    signature['short']=list_of_addresses_and_ids[
-        list_of_addresses_and_ids['address']==X
-        ]['id'].values[0]    
+    try:
+        signature['short']=list_of_addresses_and_ids[
+            list_of_addresses_and_ids['address']==X
+            ]['id'].values[0]
+    except:
+ 
+        signature['short']=None
+        
     return signature
     
     

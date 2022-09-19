@@ -60,7 +60,7 @@ for ii in tqdm(range(N_votes)):
     
     
     
-    X = signature["signerAddress"]
+    X = signature["signer"]
     
     
     # gets short Id; assings a 'short' field to the signature dict
@@ -111,9 +111,6 @@ for ii in tqdm(range(N_votes)):
     
     N_sp=SPs.shape[0]
     
-    
-
-    
     #
     # Add Y's raw bytes to the SP capacity vote (Group 2)
     #
@@ -121,16 +118,11 @@ for ii in tqdm(range(N_votes)):
     totalBytesY=0
     miners_Yi=[]
     for Y_i in SPs:
-        
-     
-        
-        
+
         power_Y_i=utils.get_power(Y_i, list_of_powers)
         #if power_Y_i.size>0:
         total_power_SPs+=power_Y_i
     
-
-        
         #
         # Iterate over all deals, adding up the bytes of deals
         # where Y is the provider, add these bytes to Deal Storage vote (Group 1)
@@ -140,10 +132,6 @@ for ii in tqdm(range(N_votes)):
         dealsByY=utils.get_market_deals_from_id(list_of_deals,
                                                  user_id=Y_i,
                                                  side='provider_id')
-            
-            
-        
-        
 
         totalBytesY += dealsByY["padded_piece_size"].sum()
         # creates array of id that have already voted
