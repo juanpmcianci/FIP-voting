@@ -1,99 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 15 09:08:09 2022
+Created on Sun Sep 18 23:27:17 2022
 
 @author: juan
 """
 
-import datautils as utils 
-from groups import groups
 import pandas as pd
 import json
-from votes import Votes
-from tqdm import tqdm
-from preprocess import dataPreprocess
-#%%
+import datautils as utils
 
-HEIGHT = 2162760
-datasets=dataPreprocess(height=HEIGHT,sectreString='SecretString.txt')
+def countVote(vote,groups_of_voters,datasets,signatures):
 
-list_of_deals=datasets['deals']
-list_of_votes=datasets['votes']
-list_of_miners=datasets['miners']
-list_of_addresses_and_ids=datasets['addresses']
-list_of_core_devs=datasets['core']
-list_of_powers=datasets['powers']
-list_of_addresses=list(list_of_addresses_and_ids['address'])
-N_votes=len(list_of_votes)
-#%%
-
-signatures=[]
-
-deal=groups(1)
-capacity=groups(2)
-client=groups(3)
-token=groups(4)
-core=groups(5)
-
-
-groups_of_voters={
-    'core':core,
-    'token':token,
-    'client':client,
-    'capacity':capacity,
-    'deal':deal
-    }
-
-print('')
-print('begin counting...')
-print('')
-
-
-
-#%%
-for ii in tqdm(range(N_votes)):
-
-
-    vote = list_of_votes.iloc[ii]
-    signature = json.loads(vote["signature"])
+    list_of_deals=datasets['deals']
+    list_of_miners=datasets['miners']
+    list_of_addresses_and_ids=datasets['addresses']
+    list_of_core_devs=datasets['core']
+    list_of_powers=datasets['powers']
     
-    
-    
-    X = signature["signerAddress"]
-    
-    
-    # gets short Id; assings a 'short' field to the signature dict
-    
-    signature=utils.getShortId(signature=signature,
+    signature=json.loads(vote["signature"])
+    X = signature["address"]
+    signature=utils.addShortAndLongId(signature=signature,
                 list_of_addresses_and_ids=list_of_addresses_and_ids)
-    
-    
     #
     # checks if it;s a core dev and adds headcount
     #
     is_core_dev =utils.is_in_list(X, list_of_core_devs)
     
-
-
+    
+    
     if is_core_dev:
         groups_of_voters["core"].validateAndAddVote(signature)
-
+    
     #
     # checks if exists and adds balance
     #
-    exists = utils.is_in_list(X, list_of_addresses)
-    if exists:
-        groups_of_voters["token"].validateAndAddVote(signature)
+    #exists = utils.is_in_list(X, list_of_addresses)
+    #if exists:
+    groups_of_voters["token"].validateAndAddVote(signature)
     #
     # Iterate over all deals, adding up the bytes of deals where X is the proposer (client)
     #
+    
+    
+    
+    
+    
+    
     dealsForX=utils.get_market_deals_from_id(list_of_deals,
                                              user_id=signature['short'],
                                              side='client_id')
-
-
-    #computes total bytes where X is the del proposer (client)
+    
+    
+    
+    #print('length {}'.format(len(dealsForX)))
     totalBytes = dealsForX["padded_piece_size"].sum()
     
     
@@ -101,19 +61,11 @@ for ii in tqdm(range(N_votes)):
     # checks that address X has not voted and has >0 bytes as a client
     if totalBytes > 0:
         groups_of_voters["client"].validateAndAddVote(signature,amount=totalBytes)
-
+    
     #
     # Iterate over all SPs, checking if X is the owner / worker of an SP Y
     #
-    
-    
-    SPs= utils.get_owners_and_workers(list_of_miners, signature['short'])
-    
-    N_sp=SPs.shape[0]
-    
-    
-
-    
+    SPs= utils.get_owners_and_workers(list_of_miners, signature['short'])    
     #
     # Add Y's raw bytes to the SP capacity vote (Group 2)
     #
@@ -121,15 +73,12 @@ for ii in tqdm(range(N_votes)):
     totalBytesY=0
     miners_Yi=[]
     for Y_i in SPs:
-        
-     
-        
-        
+ 
         power_Y_i=utils.get_power(Y_i, list_of_powers)
         #if power_Y_i.size>0:
         total_power_SPs+=power_Y_i
     
-
+    
         
         #
         # Iterate over all deals, adding up the bytes of deals
@@ -144,37 +93,20 @@ for ii in tqdm(range(N_votes)):
             
         
         
-
+    
         totalBytesY += dealsByY["padded_piece_size"].sum()
-        # creates array of id that have already voted
-        miners_Yi.append(Y_i)
     #
     # from Add Y's raw bytes to the SP capacity vote (Group 2)
     #
-      
+        miners_Yi.append(Y_i)
     
     groups_of_voters["capacity"].validateAndAddVote(signature,amount=total_power_SPs,miner_id=miners_Yi)
     groups_of_voters["deal"].validateAndAddVote(signature,amount=totalBytesY)
     
-
-    #generates a list of signatures that have voted    
-    signatures.append(signature)
-
-
-
-
-#%%
-GROUPS=['deal','capacity','client','token','core']
-
-for gr in GROUPS:
-    print('###################')
-    print('Counting '+str(gr))
-    print('###################')
-    print('')
-    print('')
-    try:
-        groups_of_voters[gr].count()
-    except:
-        pass
     
-    print('')
+    
+    signatures.append(signature)
+    
+    
+    return groups_of_voters,signatures
+    

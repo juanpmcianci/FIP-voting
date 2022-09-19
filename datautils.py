@@ -14,7 +14,24 @@ from sentinel import sentinel
 
 
 
-def longFromShort(Id,list_of_addresses_and_ids:list):
+def longFromShort(Id:str,list_of_addresses_and_ids:list):
+    '''
+    Gets long Id (address) from short ID
+    
+
+    Parameters
+    ----------
+    Id : str
+        short id.
+    list_of_addresses_and_ids : list
+       a list with addresses and ids
+
+    Returns
+    -------
+    long : str
+        address associated with Id
+
+    '''
     
     try:
         long=list_of_addresses_and_ids[
@@ -23,8 +40,32 @@ def longFromShort(Id,list_of_addresses_and_ids:list):
          long=None
     return long
     
+def getShortId(signature:dict,list_of_addresses_and_ids:list):
+    '''
+    gets short id from long-format address
+
+    Parameters
+    ----------
+    signature :  dict
+        dictionary with the signatures we want to get id for
+    list_of_addresses_and_ids : list
+       table with addresses and Ids
+
+    Returns
+    -------
+    None.
+
+    '''
     
     
+    X=signature['signer']
+    signature['short']=list_of_addresses_and_ids[
+        list_of_addresses_and_ids['address']==X
+        ]['id'].values[0]    
+    return signature
+    
+    
+  
 
 
 def addShortAndLongId(signature:dict,list_of_addresses_and_ids:list):
@@ -35,7 +76,10 @@ def addShortAndLongId(signature:dict,list_of_addresses_and_ids:list):
     if 'f0'==X[:2]:  # checks if starts with f0. If if does, signature is shortformat
         try:
            signature['short']=X
-           signature['long']=list_of_addresses_and_ids[
+           signature['long']=longFromShort()
+           
+           
+           list_of_addresses_and_ids[
                list_of_addresses_and_ids['id']==X
                ]['address'].values[0]
         except:
@@ -105,6 +149,30 @@ def connect_to_sentinel(secret_string: str):
     # initializes the class
     db = sentinel(NAME_DB)
     return db
+def get_miner_locked_funds(database: sentinel, height: int):
+    
+    
+    try:
+        miner_locked=pd.read_csv('datasets/miner_locked.csv')
+    except:
+        print('miner locked balances  not found, querrying sentinel ...')
+
+    
+        QUERY = """
+        SELECT DISTINCT "miner_id", "height", "pre_commit_deposits", "initial_pledge", "locked_funds"
+        FROM "visor"."miner_locked_funds"            
+        WHERE "height"<='{}'
+        ORDER BY "height" DESC
+       """.format(height)
+        miner_locked = database.customQuery(QUERY)
+        miner_locked.to_csv('datasets/miner_locked_funds.csv')
+    return miner_locked
+        
+    
+    
+
+    
+    
 
 
 def get_miner_sector_deals(database: sentinel, miner_id: str, height: int):
@@ -294,7 +362,10 @@ def get_active_power_actors(database: sentinel, height: int):
 
 
 def get_power(miner_id:str, list_of_powers:pd.core.frame.DataFrame):
-    power=list_of_powers[list_of_powers['miner_id']==miner_id]['raw_byte_power']
+    try:
+        power=list_of_powers[list_of_powers['miner_id']==miner_id]['raw_byte_power'].values[0]
+    except:
+        power=0
     return power
 
 
@@ -352,6 +423,26 @@ def get_market_deals(database: sentinel,  height: int):
     return deals
 
 
+def toObs(group,name:str):
+    
+    tally=group.tally
+    
+    total=tally['Approve']+tally['Reject']
+    
+    
+    Approve={"group":name,
+    "Approve":tally['Approve'],
+    "percent":tally['Approve']/total}
+    
+    Reject={"group":name,
+        "Approve":tally['Reject'],
+        "percent":tally['Reject']/total}
+    
+    return Approve,Reject
+
+
+
+
 
 if __name__ == "__main__":
     minerId = "f01740934"
@@ -359,6 +450,6 @@ if __name__ == "__main__":
     HEIGHT = 2162760
 
     db = connect_to_sentinel(secret_string="SecretString.txt")
-    deals=get_market_deals(database=db, height=HEIGHT)
-    miners=get_owned_SPs(database=db, height=HEIGHT)
+    locked=get_miner_locked_funds(database=db, height=HEIGHT)
+    
     # msd=get_miner_sector_deals(database=db,miner_id=minerId,height=HEIGHT)
