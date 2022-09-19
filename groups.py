@@ -73,7 +73,7 @@ class groups:
             quantity=int(signature['power'])
         elif self.groupID==4:
 
-            quantity=int(signature['balance'])+int(signature['lockedBalance'])
+            quantity=int(signature['balance'])
 
                 
         elif self.groupID==5:
