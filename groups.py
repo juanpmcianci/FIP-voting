@@ -21,6 +21,18 @@ juan.madrigalcianci@protocol.ai
 """
 import pandas as pd
 import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class Vote:
+    signer:str
+    vote:str
+    quantity:str
+    other:dict
+    groupID:int
+    index:int
+        
+
 class groups:
     '''
     This is a generic group object. it takes 
@@ -46,9 +58,10 @@ class groups:
         self.address=[]
         self.quantity=[]
         self.votedMoreThanOnce=[]
+        self.listVotes=[]
     
     
-    def validateAndAddVote(self,signature:dict,amount=None,miner_id=None):
+    def validateAndAddVote(self,signature:dict,amount=None,other_info:dict=[]):
         '''
         validates and adds a vote (as a dict) as a new vote on this group.
         Notice that an address might be able to vote for two different groups
@@ -58,11 +71,6 @@ class groups:
         ----------
         signature : dict
             a dictionary with the signature information
-
-
-        Returns
-        -------
-        None.
 
         '''
         
@@ -85,36 +93,50 @@ class groups:
         
         if self.is_ellegible(signature["signer"]):
         
-        
-            self.votes.append(signature["optionName"])
-            self.address.append(signature["address"])
-            
-            if miner_id is not None:
-                self.address.append(miner_id)
-
+       
+            thisVote=Vote(signer=signature["signer"],
+                        vote=signature["optionName"],
+                        quantity=quantity,
+                        other=other_info,
+                        groupID=self.groupID,
+                        index=len(self.votes)-1)
+                
+                
+            self.listVotes.append(thisVote)
             
             
             #adds sig
             
             
-            if amount is None:
-                self.quantity.append(quantity)
-            else:
-                self.quantity.append(amount)
+            if amount is not None:
+                quantity=amount
+                
+            self.quantity.append(quantity)
 
         else:
             self.votedMoreThanOnce.append("signer")
+    
             
-        
-        
-        
-        
-        
-        
-        
-    def is_ellegible(self,adress:str):
+    
+    def removeVote(self,address):
         '''
-        checks whether an address `adress` is ellegible (i.e., has it already voted)        
+        removes a vote with address \addresss\. This is useful when overriding stuff
+
+        Parameters
+        ----------
+        address : str
+            signer address of the vote to remove
+        '''
+        for vv in self.listVotes:
+            if vv['address']==address:
+                self.listVotes.remove(vv)
+        
+
+        
+        
+    def is_ellegible(self,address:str):
+        '''
+        checks whether an address `address` is ellegible (i.e., has it already voted)        
 
         Parameters
         ----------
@@ -127,7 +149,7 @@ class groups:
             `is_it` ellegible? True or False, 
 
         '''
-        is_it=adress not in self.address
+        is_it=address not in self.address
         return is_it
     
     def getUnits(self):
@@ -151,22 +173,6 @@ class groups:
             print('wrong group ID!')
         return units
         
-    def tabulate(self):
-        '''
-        collects data from the group and puts it on a dataframe
-
-        Returns
-        -------
-        df : pandas dataframe
-            contains tabulated data of votes, addresses and stuff
-
-        '''
-        aux=[self.votes,self.address,self.quantity]
-        df=pd.DataFrame(aux).T
-        df.columns=['vote','address','quantity']
-        self.tabulatedVotes=df
-        
-
         
         
     def count(self):
@@ -178,20 +184,19 @@ class groups:
         
 
         '''
-        self.tabulate()
-        list_of_votes=self.tabulatedVotes
+        list_of_votes=pd.DataFrame(self.listVotes)
         total_votes=list_of_votes['quantity'].sum()
         print('-----------')
         
         if  self.groupID==1 or self.groupID==2 or self.groupID==3:
-            divisor=2**60
+            divisor=2**50
         elif self.groupID==4:
             divisor=int(1e18)
         else:
             divisor=1
 
         self.tally = list_of_votes.groupby("vote")["quantity"].sum().to_dict()
-        total_votes = sum(self.tally.values())/divisor
+        total_votes = sum(self.tally.values())//divisor
         for op, voted_for_op in self.tally.items():
             voted_for_op=voted_for_op/divisor
             

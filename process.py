@@ -26,6 +26,7 @@ list_of_core_devs=datasets['core']
 list_of_powers=datasets['powers']
 list_of_addresses=list(list_of_addresses_and_ids['address'])
 N_votes=len(list_of_votes)
+
 #%%
 
 signatures=[]

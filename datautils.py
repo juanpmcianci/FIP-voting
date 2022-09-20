@@ -252,8 +252,32 @@ def get_owned_SPs(database: sentinel,  height: int):
         miner_infos.to_csv('datasets/miner_infos.csv')
     return miner_infos
 
+
+def is_worker_or_owner(Id,list_of_miners):
+    ''' checks if the Id corresponds to a worker or an owner, by checking if
+        such an Id can be found in the given column'''
+    
+    worker=Id in list(list_of_miners['worker_id'])
+    owner=Id in list(list_of_miners['owner_id'])
+    
+    if owner==False and worker==True:
+        result='worker', 
+        otherID=list_of_miners[list_of_miners['worker_id']==Id]['owner_id'].values[0]
+    if owner==True:
+        result='owner'
+        otherID=list_of_miners[list_of_miners['owner_id']==Id]['worker_id'].values[0]
+    if owner==False and worker==False:
+        result='Neither'
+        otherID=None
+    return result,otherID
+
 def get_owners_and_workers(data:pd.core.frame.DataFrame,
                            address: str):
+    
+    
+    '''
+    returns a list of miner_id that have owner or worker =address
+    '''
     
     SPs=[]
     labels=[]
