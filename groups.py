@@ -54,9 +54,6 @@ class groups:
     '''
     def __init__(self,groupID):
         self.groupID=groupID
-        self.votes=[]
-        self.address=[]
-        self.quantity=[]
         self.votedMoreThanOnce=[]
         self.listVotes=[]
     
@@ -93,25 +90,19 @@ class groups:
         
         if self.is_ellegible(signature["signer"]):
         
-       
+            if amount is not None:
+                quantity=amount
+                
             thisVote=Vote(signer=signature["signer"],
                         vote=signature["optionName"],
                         quantity=quantity,
                         other=other_info,
                         groupID=self.groupID,
-                        index=len(self.votes)-1)
+                        index=len(self.listVotes))
                 
                 
             self.listVotes.append(thisVote)
-            
-            
-            #adds sig
-            
-            
-            if amount is not None:
-                quantity=amount
-                
-            self.quantity.append(quantity)
+
 
         else:
             self.votedMoreThanOnce.append("signer")
@@ -128,15 +119,20 @@ class groups:
             signer address of the vote to remove
         '''
         for vv in self.listVotes:
-            if vv['address']==address:
+            if vv.signer==address:
                 self.listVotes.remove(vv)
         
-
+    
+    
+    
+    def has_voted(self,address:str):
+        has_voted= not self.is_ellegible(address)
+        return has_voted
         
         
     def is_ellegible(self,address:str):
         '''
-        checks whether an address `address` is ellegible (i.e., has it already voted)        
+        checks whether an address `address` is ellegible (i.e., hasnt it already voted)        
 
         Parameters
         ----------
@@ -149,7 +145,12 @@ class groups:
             `is_it` ellegible? True or False, 
 
         '''
-        is_it=address not in self.address
+        
+        is_it=True
+        for vv in self.listVotes:
+            if address==vv.signer:
+                is_it=False
+    
         return is_it
     
     def getUnits(self):

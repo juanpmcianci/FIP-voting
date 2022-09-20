@@ -51,7 +51,7 @@ class Votes:
         last=df['updatedAt'].max()
         print(' last vote was updated at ')
         print(last)
-        print(' as of right now, there have been {} votes casted'.format(len(df)))
+        print(' as of right now, there have been {} recorded votes'.format(len(df)))
         
 
         

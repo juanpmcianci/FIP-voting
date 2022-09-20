@@ -69,12 +69,12 @@ def countVote(vote,groups_of_voters,datasets,signatures):
         #gets the other ID in long format
         otherID_long=utils.longFromShort(otherID, list_of_addresses_and_ids)
         #if otherID_long is in the address that alread voted, remove
-        
-        
-        
         for gr in ['capacity','deal']:
             
-            if (otherID_long in groups_of_voters[gr].address) and (otherID_long!=signature['signer']):
+            
+            
+            if (groups_of_voters[gr].has_voted(otherID_long)) and (otherID_long!=signature['signer']):
+                print(' ')
                 print('overwritting '+otherID_long)
                 groups_of_voters[gr].removeVote(otherID_long)
             

@@ -40,15 +40,16 @@ def dataPreprocess(height:int,sectreString:str):
     list_powers=utils.get_active_power_actors(database=db,   height=height)    
     
     
+    print('getting list of core devs...')
+    list_core_devs=list(pd.read_csv('datasets/listOfCoreDevs.csv'))
+
+    
     #gets list of votes
     
     print('getting list of votes...')
     
     votes=Votes() ; votes.update()
     listVotes=votes.votes
-    
-    print('getting list of core devs...')
-    list_core_devs=list(pd.read_csv('datasets/listOfCoreDevs.csv'))
 
     results={'deals':listDeals,
              'miners':miner_info,
