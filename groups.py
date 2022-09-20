@@ -175,7 +175,7 @@ class groups:
 
         Returns
         -------
-        a tally of the votes, dict
+        
 
         '''
         self.tabulate()
