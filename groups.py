@@ -82,14 +82,12 @@ class groups:
             print('wrong group ID!')
         
             
-        #validates the vote
-        X=signature['signature']
         
         if self.is_ellegible(signature["signer"]):
         
         
             self.votes.append(signature["optionName"])
-            self.address.append(signature["signer"])
+            self.address.append(signature["address"])
             
             if miner_id is not None:
                 self.address.append(miner_id)
@@ -105,7 +103,7 @@ class groups:
                 self.quantity.append(amount)
 
         else:
-            self.votedMoreThanOnce.append(X)
+            self.votedMoreThanOnce.append("signer")
             
         
         
@@ -193,9 +191,9 @@ class groups:
             divisor=1
 
         self.tally = list_of_votes.groupby("vote")["quantity"].sum().to_dict()
-        total_votes = sum(self.tally.values())//divisor
+        total_votes = sum(self.tally.values())/divisor
         for op, voted_for_op in self.tally.items():
-            voted_for_op=voted_for_op//divisor
+            voted_for_op=voted_for_op/divisor
             
 
             
